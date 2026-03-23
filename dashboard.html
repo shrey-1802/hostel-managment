@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Hospital Management System</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 30px;
+      background-color: #f0f0f0;
+    }
+
+    h1 {
+      color: blue;
+      text-align: center;
+    }
+
+    h2 {
+      color: darkblue;
+    }
+
+    input {
+      padding: 6px;
+      margin: 5px;
+      width: 200px;
+    }
+
+    button {
+      padding: 8px 16px;
+      margin: 5px;
+      background-color: blue;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: darkblue;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 10px;
+      background-color: white;
+    }
+
+    th {
+      background-color: blue;
+      color: white;
+      padding: 8px;
+      border: 1px solid black;
+    }
+
+    td {
+      padding: 8px;
+      border: 1px solid black;
+      text-align: center;
+    }
+
+    .section {
+      background-color: white;
+      padding: 20px;
+      margin-bottom: 20px;
+      border: 1px solid gray;
+    }
+
+    #message {
+      color: green;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>Hospital Management System</h1>
+  <p id="message"></p>
+
+  <!-- Section for handling patient admission form -->
+  <div class="section">
+    <h2>Admit Patient</h2>
+
+    Name: <input type="text" id="p-name" placeholder="Patient Name"> <br>
+    Age: <input type="number" id="p-age" placeholder="Age"> <br>
+    Disease: <input type="text" id="p-disease" placeholder="Disease"> <br>
+    Room No: <input type="number" id="p-room" placeholder="Room Number"> <br>
+    Date: <input type="date" id="p-date"> <br>
+    Bill ($): <input type="number" id="p-bill" placeholder="Bill Amount"> <br>
+
+    <button onclick="admitPatient()">Admit Patient</button>
+  </div>
+
+  <!-- Section displaying the list of admitted patients -->
+  <div class="section">
+    <h2>Patient List</h2>
+    <table id="patient-table">
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Age</th>
+        <th>Disease</th>
+        <th>Room</th>
+        <th>Date</th>
+        <th>Bill</th>
+        <th>Action</th>
+      </tr>
+    </table>
+    <h3 id="total-bill" style="margin-top: 20px; color: darkblue;">Total Bill for all Admitted Patients: $0.00</h3>
+  </div>
+
+  <div class="section">
+    <h2>Add Doctor</h2>
+
+    Name: <input type="text" id="d-name" placeholder="Doctor Name"> <br>
+    Specialization: <input type="text" id="d-spec" placeholder="Specialization"> <br>
+
+    <button onclick="addDoctor()">Add Doctor</button>
+  </div>
+
+  <!-- Section displaying the list of available doctors -->
+  <div class="section">
+    <h2>Doctor List</h2>
+    <table id="doctor-table">
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Specialization</th>
+      </tr>
+    </table>
+  </div>
+
+
+  <script>
+
+    var patients = [];
+    var doctors = [];
+
+    var patientId = 1;
+    var doctorId = 1;
+
+    function showMessage(msg) {
+      document.getElementById("message").innerText = msg;
+    }
+
+    function admitPatient() {
+      var name = document.getElementById("p-name").value;
+      var age = document.getElementById("p-age").value;
+      var disease = document.getElementById("p-disease").value;
+      var room = document.getElementById("p-room").value;
+      var date = document.getElementById("p-date").value;
+      var bill = document.getElementById("p-bill").value;
+
+
+      if (name == "" || age == "" || disease == "" || room == "" || date == "" || bill == "") {
+        showMessage("Please fill all patient fields!");
+        return;
+      }
+
+      var patient = {
+        id: patientId,
+        name: name,
+        age: age,
+        disease: disease,
+        room: room,
+        date: date,
+        bill: parseFloat(bill) || 0
+      };
+
+      patients.push(patient);
+      patientId++;
+
+
+      document.getElementById("p-name").value = "";
+      document.getElementById("p-age").value = "";
+      document.getElementById("p-disease").value = "";
+      document.getElementById("p-room").value = "";
+      document.getElementById("p-date").value = "";
+      document.getElementById("p-bill").value = "";
+
+      showMessage("Patient admitted successfully!");
+      showPatients();
+    }
+
+
+    function showPatients() {
+      var table = document.getElementById("patient-table");
+
+
+      table.innerHTML = "<tr><th>ID</th><th>Name</th><th>Age</th><th>Disease</th><th>Room</th><th>Date</th><th>Bill</th><th>Action</th></tr>";
+
+      var totalBill = 0;
+
+      for (var i = 0; i < patients.length; i++) {
+        var p = patients[i];
+        totalBill += p.bill;
+
+        var row = table.insertRow();
+        row.insertCell(0).innerText = p.id;
+        row.insertCell(1).innerText = p.name;
+        row.insertCell(2).innerText = p.age;
+        row.insertCell(3).innerText = p.disease;
+        row.insertCell(4).innerText = p.room;
+        row.insertCell(5).innerText = p.date;
+        row.insertCell(6).innerText = "$" + p.bill.toFixed(2);
+
+        var btn = document.createElement("button");
+        btn.innerText = "Discharge";
+        btn.style.backgroundColor = "red";
+        btn.onclick = (function (pid) {
+          return function () {
+            dischargePatient(pid);
+          };
+        })(p.id);
+
+        row.insertCell(7).appendChild(btn);
+      }
+      
+      var totalDisplay = document.getElementById("total-bill");
+      if(totalDisplay) {
+        totalDisplay.innerText = "Total Bill for all Admitted Patients: $" + totalBill.toFixed(2);
+      }
+    }
+
+    function dischargePatient(id) {
+      for (var i = 0; i < patients.length; i++) {
+        if (patients[i].id == id) {
+          patients.splice(i, 1);
+          showMessage("Patient discharged!");
+          showPatients();
+          return;
+        }
+      }
+      showMessage("Patient not found!");
+    }
+
+    function addDoctor() {
+      var name = document.getElementById("d-name").value;
+      var spec = document.getElementById("d-spec").value;
+
+      if (name == "" || spec == "") {
+        showMessage("Please fill all doctor fields!");
+        return;
+      }
+
+      var doctor = {
+        id: doctorId,
+        name: name,
+        specialization: spec
+      };
+
+      doctors.push(doctor);
+      doctorId++;
+
+      document.getElementById("d-name").value = "";
+      document.getElementById("d-spec").value = "";
+
+      showMessage("Doctor added successfully!");
+      showDoctors();
+    }
+
+    function showDoctors() {
+      var table = document.getElementById("doctor-table");
+
+      table.innerHTML = "<tr><th>ID</th><th>Name</th><th>Specialization</th></tr>";
+
+      for (var i = 0; i < doctors.length; i++) {
+        var d = doctors[i];
+
+        var row = table.insertRow();
+        row.insertCell(0).innerText = d.id;
+        row.insertCell(1).innerText = d.name;
+        row.insertCell(2).innerText = d.specialization;
+      }
+    }
+
+  </script>
+
+</body>
+
+</html>
